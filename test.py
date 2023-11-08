@@ -1,16 +1,27 @@
 import json
+from multiprocessing import Pool
+import time
 
-list = []
+N = 40
 
-for i in range(0, 50):
-    print(i*1000)
-
+def load(i):
     start = i*1000
-    end = start+999
+    return json.load(open("data/mpd.slice." + str(start) + "-" + str(start+999) + ".json"))["playlists"]
 
-    path = "data/mpd.slice." + str(start) + "-" + str(end) + ".json"
-    with open(path) as file:
-        data = json.load(file)
-        list.append(data["playlists"])
 
-print(len(list))
+# first way, using multiprocessing
+start_time = time.perf_counter()
+with Pool() as pool:
+    result = pool.map(load, range(0,N))
+finish_time = time.perf_counter()
+print("Program finished in {} seconds - using multiprocessing".format(finish_time-start_time))
+print("---")
+# second way, serial computation
+start_time = time.perf_counter()
+result = []
+
+for x in range(0,N):
+    result.append(load(x))
+
+finish_time = time.perf_counter()
+print("Program finished in {} seconds".format(finish_time-start_time))
